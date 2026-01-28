@@ -1,6 +1,9 @@
 # PalsyTrack
 Longitudinal Facial Asymmetry Monitor
 
+# YOUTUBE DEMONSTRATION!
+https://youtu.be/oOc6E-3RqoI?si=TrUBijeI6kSwgeFs
+
 ## About the Project
 I built this tool after learning about Bell's Palsy in class and wanting to apply computer vision to a real-world medical problem. In clinical settings, tracking facial weakness is often subjective or requires expensive 3D imaging. PalsyTrack offers a way to monitor recovery or symptom progression objectively using just a standard webcam. It quantifies facial symmetry and flags significant changes over time.
 ## How it Works
