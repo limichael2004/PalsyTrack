@@ -8,7 +8,7 @@ from PIL import Image, ImageTk
 import os
 from datetime import datetime
 
-#Configuration
+#the configuration
 
 class Config:
     APP_NAME = "PalsyTrack by Michael Li"
@@ -21,16 +21,16 @@ class Config:
     THEME_BG = "#101010"
     THEME_PANEL = "#1e1e1e" 
     THEME_TEXT = "#e0e0e0"
-    THEME_ACCENT = "#00ffcc" # Medical Cyan
+    THEME_ACCENT = "#00ffcc" #ghost
     THEME_ALERT = "#ff3333"
     THEME_WARN = "#ffaa00"
-    THEME_ACTIVE = "#ffff00" # Yellow for selected ghost feature
+    THEME_ACTIVE = "#ffff00" 
     
     # Camera
     CAM_WIDTH = 1280
     CAM_HEIGHT = 720
     
-    # --- ANATOMICAL INDICES (Face Mesh) ---
+    # anatomical part
     L_EYE_IDX = [33, 159, 133, 145] 
     R_EYE_IDX = [362, 386, 263, 374]
     L_PUPIL = 468
@@ -41,7 +41,7 @@ class Config:
     L_EYE_CORNERS = [133, 33]  # Inner, Outer
     R_EYE_CORNERS = [362, 263] # Inner, Outer
     
-    # "Ears" / Face Width Markers (Tragion area)
+    # "Ears" / Face Width Markers 
     L_EAR_IDX = [234, 93, 132] 
     R_EAR_IDX = [454, 323, 361]
     
@@ -54,7 +54,7 @@ class Config:
 
 os.makedirs(Config.IMAGE_DIR, exist_ok=True)
 
-#biomath
+#math/hard part
 
 class BioMath:
     @staticmethod
@@ -91,7 +91,7 @@ class FacialEngine:
         lms = results.multi_face_landmarks[0]
         mesh = np.array([np.array([p.x*w, p.y*h, p.z*w]) for p in lms.landmark])
         
-        # QC: Head Pose
+        # head
         p1 = mesh[33]
         p2 = mesh[263]
         dy, dx = p2[1]-p1[1], p2[0]-p1[0]
@@ -148,7 +148,7 @@ class FacialEngine:
         
         return m
 
-#statisticalanalyzer
+#statistics (what's up Professor Roya)
 
 class ClinicalAuditor:
     def __init__(self):
@@ -244,7 +244,7 @@ class SymmetryGUI:
             'GLOBAL': {'scale': 1.0, 'x': 0, 'y': 0}
         }
         
-        # Calibration State
+        # Calibration
         self.active_feature_idx = 0
         self.feature_list = ['GLOBAL', 'EYES', 'NOSE', 'MOUTH', 'CHIN', 'EARS']
         
@@ -253,7 +253,7 @@ class SymmetryGUI:
         self._bind_controls() 
         self._update_loop()
         
-        # FIX: Force focus to root so keybinds work immediately
+        # FIX: Force focus to root so keybinds work
         self.root.focus_set()
         
     def _load_data(self):
@@ -269,7 +269,7 @@ class SymmetryGUI:
             self.mode = "BASELINE"
 
     def _bind_controls(self):
-        # Navigation (FIXED: return "break" prevents focus cycling)
+        # Navigation 
         self.root.bind('<Tab>', self._cycle_feature)
         
         # Movement
@@ -289,7 +289,7 @@ class SymmetryGUI:
         self.active_feature_idx = (self.active_feature_idx + 1) % len(self.feature_list)
         feat = self.feature_list[self.active_feature_idx]
         self.lbl_calib.config(text=f"ADJUSTING: {feat}", fg=Config.THEME_ACTIVE)
-        return "break" # CRITICAL FIX: Stops Tab from changing focus
+        return "break" 
 
     def _adjust_ghost(self, axis, delta):
         feat = self.feature_list[self.active_feature_idx]
@@ -361,7 +361,7 @@ class SymmetryGUI:
             c.pack(side=tk.RIGHT)
             self.bars[metric] = c
 
-        # Log
+        # the log
         card_log = tk.LabelFrame(data_panel, text="STATUS STREAM", bg=Config.THEME_PANEL, fg="gray", font=("Arial", 9, "bold"))
         card_log.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
         self.txt_log = tk.Text(card_log, bg="#111", fg="#0f0", font=("Courier New", 10), bd=0, padx=10, pady=10)
@@ -377,32 +377,32 @@ class SymmetryGUI:
         overlay = img.copy()
         cx, cy = w // 2, h // 2
         
-        # Global Transforms
+        
         gs = self.ghost_offsets['GLOBAL']['scale']
         gx = cx + self.ghost_offsets['GLOBAL']['x']
         gy = cy + self.ghost_offsets['GLOBAL']['y']
         
         active_feat = self.feature_list[self.active_feature_idx]
         
-        # Helper to draw components with independent offsets
+        
         def draw_comp(tag, func, *args):
             # Base color
             col = (60, 60, 60)
             # Highlight active feature
             if active_feat == tag or active_feat == 'GLOBAL':
-                col = (255, 255, 0) # Yellow highlight
+                col = (255, 255, 0) 
                 
-            # Retrieve granular offset
+            
             off_x = self.ghost_offsets[tag]['x']
             off_y = self.ghost_offsets[tag]['y']
             
-            # Apply Global + Local
+            #  Global + Local
             final_cx = int(gx + off_x)
             final_cy = int(gy + off_y)
             
             func(final_cx, final_cy, col, *args)
 
-        # Drawing Primitives
+        # Drawing 
         def g_ellipse(cx, cy, col, ox, oy, rx, ry):
             cv2.ellipse(overlay, (int(cx + ox*gs), int(cy + oy*gs)), (int(rx*gs), int(ry*gs)), 0, 0, 360, col, 2)
             
@@ -412,7 +412,7 @@ class SymmetryGUI:
         def g_circle(cx, cy, col, ox, oy, r):
             cv2.circle(overlay, (int(cx + ox*gs), int(cy + oy*gs)), int(r*gs), col, 2)
 
-        # --- RENDER GHOST ---
+        # Ghost overlay
         
         # Eyes
         draw_comp('EYES', g_ellipse, -80, -50, 45, 28)
@@ -436,7 +436,7 @@ class SymmetryGUI:
         scan_y = int((datetime.now().microsecond / 1000000) * h)
         cv2.line(overlay, (0, scan_y), (w, scan_y), (0, 50, 0), 1)
         
-        # --- LIVE MESH ---
+        # live mesh
         color = (0, 255, 0) if qc['status'] == "OK" else (0, 0, 255)
         if mesh is not None:
             for poly in [Config.L_EYE_IDX, Config.R_EYE_IDX, Config.L_BROW, Config.R_BROW]:
